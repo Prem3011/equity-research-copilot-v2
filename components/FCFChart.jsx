@@ -1,18 +1,9 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Chart as ChartJS, registerables } from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend);
+ChartJS.register(...registerables);
 
 export default function FCFChart({ years, currencySymbol = "$" }) {
   const canvasRef = useRef(null);
@@ -24,7 +15,7 @@ export default function FCFChart({ years, currencySymbol = "$" }) {
     if (chartRef.current) chartRef.current.destroy();
 
     const labels = years.map((y) => y.year);
-    const ffo = years.map((y) => Math.round((y.ffo || 0) / 1e6) / 1e3); // billions
+    const ffo = years.map((y) => Math.round((y.ffo || 0) / 1e6) / 1e3);
     const wc = years.map((y) => Math.round((y.wcChange || 0) / 1e6) / 1e3);
     const capex = years.map((y) => -Math.round((y.capex || 0) / 1e6) / 1e3);
     const divs = years.map((y) => -Math.round((y.dividendsPaid || 0) / 1e6) / 1e3);
