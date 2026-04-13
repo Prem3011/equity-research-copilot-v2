@@ -15,19 +15,18 @@ export async function POST(request) {
 
     if (!fmpKey || !geminiKey) {
       return Response.json(
-        { error: "API keys not configured" },
+        { error: "API keys not configured. FMP: " + !!fmpKey + ", Gemini: " + !!geminiKey },
         { status: 500 }
       );
     }
 
-    // Step 1: Fetch FMP data first (we need company name for Gemini)
+    // Step 1: Fetch FMP data
     let fmpData;
     try {
       fmpData = await fetchFMPData(ticker, fmpKey);
     } catch (e) {
-      console.error("FMP error:", e.message);
       return Response.json(
-        { error: `Could not fetch financial data for "${ticker}". Check if the ticker is valid.` },
+        { error: `FMP error for "${ticker}": ${e.message}` },
         { status: 404 }
       );
     }
@@ -35,7 +34,7 @@ export async function POST(request) {
     // Step 2: Compute financial metrics
     const financials = computeFinancials(fmpData);
 
-    // Step 3: Fetch Gemini analysis (can happen after we have the company name)
+    // Step 3: Fetch Gemini analysis
     let gemini;
     try {
       gemini = await fetchGeminiAnalysis(
@@ -45,10 +44,9 @@ export async function POST(request) {
         geminiKey
       );
     } catch (e) {
-      console.error("Gemini error:", e.message);
-      // Non-fatal — return financials with empty AI analysis
+      // Return the actual Gemini error to the frontend for debugging
       gemini = {
-        overview: "AI analysis temporarily unavailable.",
+        overview: "Gemini error: " + e.message,
         risks: [],
         bullCase: "",
         bearCase: "",
@@ -70,9 +68,8 @@ export async function POST(request) {
       gemini,
     });
   } catch (e) {
-    console.error("API route error:", e);
     return Response.json(
-      { error: "Internal server error" },
+      { error: "Server error: " + e.message },
       { status: 500 }
     );
   }
