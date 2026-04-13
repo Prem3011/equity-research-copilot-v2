@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Chart as ChartJS, ArcElement, Tooltip } from "chart.js";
+import { Chart as ChartJS, registerables } from "chart.js";
 
-ChartJS.register(ArcElement, Tooltip);
+ChartJS.register(...registerables);
 
 const COLORS = ["#534AB7", "#378ADD", "#D4537E", "#BA7517", "#888780", "#1D9E75"];
 
