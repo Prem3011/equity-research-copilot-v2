@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip } from "chart.js";
+import { Chart as ChartJS, registerables } from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+ChartJS.register(...registerables);
 
 export default function DebtMaturityChart({ debtData, currencySymbol = "$" }) {
   const canvasRef = useRef(null);
