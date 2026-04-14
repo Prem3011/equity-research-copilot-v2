@@ -34,7 +34,7 @@ export default function FinancialTable({ years, profile, dataSource }) {
           className="text-[9px] px-2 py-0.5 rounded-full font-medium"
           style={{ background: "var(--accent-light)", color: "var(--accent)" }}
         >
-          {dataSource === "gemini" ? "AI sourced" : "FMP API"}
+         {dataSource === "fmp" ? "FMP API" : dataSource === "yahoo" ? "Yahoo Finance" : "AI sourced"}
         </span>
       </div>
 
