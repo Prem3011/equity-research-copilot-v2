@@ -30,11 +30,11 @@ export default function FinancialTable({ years, profile, dataSource }) {
         <h3 className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>
           Financial table ({years[0]?.year}–{years[years.length - 1]?.year})
         </h3>
-        <span
+       <span
           className="text-[9px] px-2 py-0.5 rounded-full font-medium"
           style={{ background: "var(--accent-light)", color: "var(--accent)" }}
         >
-          FMP API
+          {dataSource === "gemini" ? "AI sourced" : "FMP API"}
         </span>
       </div>
 
