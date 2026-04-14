@@ -22,7 +22,8 @@ export default function GeographyPieChart({ geography }) {
         datasets: [{
           data: geography.map((g) => g.percentage),
           backgroundColor: COLORS.slice(0, geography.length),
-          borderWidth: 0,
+          borderWidth: 2,
+          borderColor: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
         }],
       },
       options: {
