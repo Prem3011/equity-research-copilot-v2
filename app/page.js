@@ -91,7 +91,7 @@ export default function Home() {
 
             {/* Financial Table + News (2 columns on desktop) */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
-              <FinancialTable years={fin?.years} profile={prof} />
+             <FinancialTable years={fin?.years} profile={prof} dataSource={data?.dataSource} />
               <div className="space-y-5">
                 <NewsSection news={gem?.news} />
                 <div
