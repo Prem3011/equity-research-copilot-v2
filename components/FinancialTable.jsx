@@ -2,7 +2,7 @@
 
 import { formatNumber, formatRatio } from "@/lib/computeFinancials";
 
-export default function FinancialTable({ years, profile }) {
+export default function FinancialTable({ years, profile, dataSource }) {
   if (!years?.length) return null;
 
   const sym = profile?.currencySymbol || "$";
