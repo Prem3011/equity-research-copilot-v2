@@ -135,9 +135,9 @@ export default function Home() {
             <PeerComparison peers={gem?.peers} />
 
             {/* Footer */}
-            <div className="text-center pt-4 pb-2">
+          <div className="text-center pt-4 pb-2">
               <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                Built by Prem Acharya · Northeastern University · Powered by Gemini AI + FMP API · Next.js
+                Built by Prem Acharya · Powered by Gemini AI + FMP API · Next.js
               </p>
               <p className="text-[10px] mt-1" style={{ color: "var(--text-tertiary)" }}>
                 Financial data from company filings via FMP. AI analysis via Google Gemini. Not financial advice.
