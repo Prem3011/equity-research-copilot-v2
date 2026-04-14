@@ -1,6 +1,6 @@
 import { fetchFMPData } from "@/lib/fmp";
 import { computeFinancials } from "@/lib/computeFinancials";
-import { fetchGeminiAnalysis } from "@/lib/gemini";
+import { fetchGeminiAnalysis, fetchGeminiFinancials } from "@/lib/gemini";
 
 export async function POST(request) {
   try {
@@ -20,31 +20,39 @@ export async function POST(request) {
       );
     }
 
-    // Step 1: Fetch FMP data
-    let fmpData;
+    let financials;
+    let dataSource = "fmp";
+
+    // Step 1: Try FMP first
     try {
-      fmpData = await fetchFMPData(ticker, fmpKey);
+      const fmpData = await fetchFMPData(ticker, fmpKey);
+      financials = computeFinancials(fmpData);
     } catch (e) {
-      return Response.json(
-        { error: `FMP error for "${ticker}": ${e.message}` },
-        { status: 404 }
-      );
+      console.error("FMP failed:", e.message);
+
+      // Step 1b: FMP failed (likely Indian stock 402) — use Gemini for financials
+      try {
+        const geminiFinData = await fetchGeminiFinancials(ticker, geminiKey);
+        financials = geminiFinData;
+        dataSource = "gemini";
+      } catch (ge) {
+        return Response.json(
+          { error: `Could not fetch data for "${ticker}": FMP error: ${e.message}. Gemini fallback error: ${ge.message}` },
+          { status: 404 }
+        );
+      }
     }
 
-    // Step 2: Compute financial metrics
-    const financials = computeFinancials(fmpData);
-
-    // Step 3: Fetch Gemini analysis
+    // Step 2: Fetch Gemini qualitative analysis
     let gemini;
     try {
       gemini = await fetchGeminiAnalysis(
-        fmpData.rawTicker,
-        financials.profile.companyName,
-        fmpData.isIndian,
+        ticker.toUpperCase().trim(),
+        financials.profile?.companyName || ticker,
+        financials.profile?.isIndian || false,
         geminiKey
       );
     } catch (e) {
-      // Return the actual Gemini error to the frontend for debugging
       gemini = {
         overview: "Gemini error: " + e.message,
         risks: [],
@@ -62,10 +70,10 @@ export async function POST(request) {
     }
 
     return Response.json({
-      ticker: fmpData.rawTicker,
-      fmpTicker: fmpData.ticker,
+      ticker: ticker.toUpperCase().trim(),
       financials,
       gemini,
+      dataSource,
     });
   } catch (e) {
     return Response.json(
