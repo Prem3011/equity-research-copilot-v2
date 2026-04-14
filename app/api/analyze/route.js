@@ -1,4 +1,4 @@
-import { fetchFMPData } from "@/lib/fmp";
+import { fetchFMPData, fetchYahooQuote, isIndianStock } from "@/lib/fmp";
 import { computeFinancials } from "@/lib/computeFinancials";
 import { fetchGeminiAnalysis, fetchGeminiCombined } from "@/lib/gemini";
 
@@ -20,18 +20,22 @@ export async function POST(request) {
     let financials;
     let gemini;
     let dataSource = "fmp";
+    const isIndian = isIndianStock(ticker);
 
-    // Step 1: Try FMP first
-    try {
-      const fmpData = await fetchFMPData(ticker, fmpKey);
-      financials = computeFinancials(fmpData);
+    if (!isIndian) {
+      // US STOCKS: FMP for financials + Gemini for analysis
+      try {
+        const fmpData = await fetchFMPData(ticker, fmpKey);
+        financials = computeFinancials(fmpData);
+      } catch (e) {
+        return Response.json({ error: `FMP error for "${ticker}": ${e.message}` }, { status: 404 });
+      }
 
-      // Step 2: FMP worked — fetch Gemini for qualitative analysis only (1 request)
       try {
         gemini = await fetchGeminiAnalysis(
           ticker.toUpperCase().trim(),
           financials.profile.companyName,
-          financials.profile.isIndian,
+          false,
           geminiKey
         );
       } catch (ge) {
@@ -42,20 +46,47 @@ export async function POST(request) {
           liquidity: { sources: {}, uses: {} }, peers: [],
         };
       }
-    } catch (fmpError) {
-      // Step 1b: FMP failed — use single combined Gemini call (1 request for everything)
-      console.error("FMP failed, using Gemini combined:", fmpError.message);
+    } else {
+      // INDIAN STOCKS: Yahoo for price + Gemini combined for everything else
       dataSource = "gemini";
 
-      try {
-        const combined = await fetchGeminiCombined(ticker.toUpperCase().trim(), geminiKey);
+      // Fetch Yahoo quote and Gemini combined in parallel
+      let yahooQuote = null;
+      let combined = null;
+
+      const [yahooResult, geminiResult] = await Promise.allSettled([
+        fetchYahooQuote(ticker),
+        fetchGeminiCombined(ticker.toUpperCase().trim(), geminiKey),
+      ]);
+
+      if (yahooResult.status === "fulfilled") {
+        yahooQuote = yahooResult.value;
+      }
+
+      if (geminiResult.status === "fulfilled") {
+        combined = geminiResult.value;
         financials = combined.financials;
         gemini = combined.gemini;
-      } catch (ge) {
+      } else {
         return Response.json(
-          { error: `Could not fetch data for "${ticker}": ${ge.message}` },
+          { error: `Could not fetch data for "${ticker}": ${geminiResult.reason?.message}` },
           { status: 404 }
         );
+      }
+
+      // Override Gemini's price/market data with accurate Yahoo data
+      if (yahooQuote && financials?.profile) {
+        financials.profile.price = yahooQuote.price;
+        financials.profile.change = yahooQuote.change;
+        financials.profile.changePercent = yahooQuote.changePercent;
+        financials.profile.companyName = yahooQuote.longName || yahooQuote.shortName || financials.profile.companyName;
+        financials.profile.exchange = yahooQuote.exchangeName || financials.profile.exchange;
+
+        // Recalculate P/E with real price
+        const latestEps = financials.latest?.eps || 0;
+        if (yahooQuote.price && latestEps) {
+          financials.profile.peRatio = yahooQuote.price / latestEps;
+        }
       }
     }
 
