@@ -95,10 +95,15 @@ export async function POST(request) {
       financials.profile.currencySymbol = yq.currencySymbol || financials.profile.currencySymbol;
       financials.profile.isIndian = yq.isIndian;
 
-      // Recalculate P/E with real price
-      const latestEps = financials.latest?.eps || 0;
-      if (yq.price && latestEps) {
-        financials.profile.peRatio = yq.price / latestEps;
+      // Recalculate market cap and P/E with real Yahoo price
+      const eps = financials.profile.trailingEps || financials.latest?.eps || 0;
+      const shares = financials.profile.sharesOutstanding || 0;
+
+      if (yq.price && eps) {
+        financials.profile.peRatio = yq.price / eps;
+      }
+      if (yq.price && shares) {
+        financials.profile.marketCap = yq.price * shares;
       }
     }
 
