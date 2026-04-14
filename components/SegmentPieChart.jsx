@@ -22,7 +22,8 @@ export default function SegmentPieChart({ segments }) {
         datasets: [{
           data: segments.map((s) => s.percentage),
           backgroundColor: COLORS.slice(0, segments.length),
-          borderWidth: 0,
+        borderWidth: 2,
+          borderColor: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
         }],
       },
       options: {
