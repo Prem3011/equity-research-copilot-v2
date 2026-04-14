@@ -21,9 +21,9 @@ export default function FCFChart({ years, currencySymbol = "$" }) {
     const divs = years.map((y) => -Math.round((y.dividendsPaid || 0) / 1e6) / 1e3);
     const fcf = years.map((y) => Math.round((y.fcf || 0) / 1e6) / 1e3);
 
-    const isDark = document.documentElement.classList.contains("dark");
-    const gridClr = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)";
-    const tickClr = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.4)";
+   const isDark = document.documentElement.classList.contains("dark");
+    const gridClr = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)";
+    const tickClr = isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.4)";
 
     chartRef.current = new ChartJS(canvasRef.current, {
       type: "bar",
