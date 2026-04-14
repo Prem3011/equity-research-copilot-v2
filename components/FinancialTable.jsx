@@ -21,6 +21,8 @@ export default function FinancialTable({ years, profile, dataSource }) {
     { label: "EPS", key: "eps", fmt: (v) => (v ? `${profile?.isIndian ? "₹" : "$"}${v.toFixed(2)}` : "-") },
   ];
 
+  const badgeText = dataSource === "fmp" ? "FMP API" : dataSource === "yahoo" ? "Yahoo Finance" : "AI sourced";
+
   return (
     <div
       className="rounded-xl p-5 animate-fade-in"
@@ -30,11 +32,11 @@ export default function FinancialTable({ years, profile, dataSource }) {
         <h3 className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>
           Financial table ({years[0]?.year}–{years[years.length - 1]?.year})
         </h3>
-       <span
+        <span
           className="text-[9px] px-2 py-0.5 rounded-full font-medium"
           style={{ background: "var(--accent-light)", color: "var(--accent)" }}
         >
-         {dataSource === "fmp" ? "FMP API" : dataSource === "yahoo" ? "Yahoo Finance" : "AI sourced"}
+          {badgeText}
         </span>
       </div>
 
