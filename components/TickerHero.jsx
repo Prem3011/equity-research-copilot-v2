@@ -47,8 +47,7 @@ export default function TickerHero({ profile, ticker }) {
               className="text-sm font-medium"
               style={{ color: isPositive ? "var(--positive)" : "var(--negative)" }}
             >
-              {isPositive ? "+" : ""}
-              {profile.change?.toFixed(2)} ({formatPercent(profile.changePercent)})
+              {isPositive ? "+" : ""}{profile.change?.toFixed(2)} ({formatPercent(profile.changePercent)})
             </span>
             <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
               today
