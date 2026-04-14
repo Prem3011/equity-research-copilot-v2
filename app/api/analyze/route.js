@@ -3,6 +3,32 @@ import { computeFinancials } from "@/lib/computeFinancials";
 import { fetchGeminiAnalysis } from "@/lib/gemini";
 import { fetchYahooQuote, fetchYahooFinancials } from "@/lib/yahoo";
 
+function buildYahooFinancials(yahooQuote, yahooFin, ticker) {
+  const latest = yahooFin.years[yahooFin.years.length - 1] || {};
+  const price = yahooQuote.price || 0;
+  const eps = yahooFin.latestEps || latest.eps || 0;
+
+  return {
+    years: yahooFin.years,
+    profile: {
+      companyName: yahooQuote.longName || yahooQuote.shortName || ticker,
+      exchange: yahooQuote.exchangeName || "NSE",
+      sector: "",
+      industry: "",
+      description: "",
+      marketCap: yahooFin.latestMarketCap || 0,
+      price,
+      peRatio: price && eps ? price / eps : 0,
+      currency: yahooQuote.currency || "INR",
+      currencySymbol: yahooQuote.currencySymbol || "₹",
+      isIndian: yahooQuote.isIndian || false,
+      change: yahooQuote.change || 0,
+      changePercent: yahooQuote.changePercent || 0,
+    },
+    latest,
+  };
+}
+
 export async function POST(request) {
   try {
     const { ticker } = await request.json();
@@ -25,7 +51,7 @@ export async function POST(request) {
     const knownIndian = isKnownIndianTicker(upper);
 
     if (!knownIndian) {
-      // US STOCKS: FMP for financials
+      // US STOCKS: try FMP first
       try {
         const fmpData = await fetchFMPData(upper, fmpKey);
         if (!fmpData.income?.length && !fmpData.profile?.companyName) {
@@ -34,66 +60,40 @@ export async function POST(request) {
         financials = computeFinancials(fmpData);
         dataSource = "fmp";
       } catch (fmpError) {
-        // FMP failed — try Yahoo (might be an Indian stock not in our list)
-        console.log("FMP failed for", upper, "- trying Yahoo:", fmpError.message);
+        // FMP failed — try Yahoo (might be Indian stock not in our list, or other exchange)
+        console.log("FMP failed for", upper, "trying Yahoo:", fmpError.message);
         try {
           const [yahooQuote, yahooFin] = await Promise.all([
             fetchYahooQuote(upper),
             fetchYahooFinancials(upper),
           ]);
-
-          financials = {
-            years: yahooFin.years,
-            profile: {
-              companyName: yahooQuote.longName || yahooQuote.shortName || upper,
-              exchange: yahooQuote.exchangeName,
-              sector: "", industry: "", description: "",
-              marketCap: 0, price: yahooQuote.price,
-              peRatio: yahooQuote.price && yahooFin.latestEps ? yahooQuote.price / yahooFin.latestEps : 0,
-              currency: yahooQuote.currency,
-              currencySymbol: yahooQuote.currencySymbol,
-              isIndian: yahooQuote.isIndian,
-              change: yahooQuote.change,
-              changePercent: yahooQuote.changePercent,
-            },
-            latest: yahooFin.years[yahooFin.years.length - 1] || {},
-          };
+          financials = buildYahooFinancials(yahooQuote, yahooFin, upper);
           dataSource = "yahoo";
         } catch (yahooError) {
-          return Response.json({ error: `Could not fetch data for "${upper}": ${yahooError.message}` }, { status: 404 });
+          return Response.json(
+            { error: `Could not fetch data for "${upper}": FMP: ${fmpError.message}, Yahoo: ${yahooError.message}` },
+            { status: 404 }
+          );
         }
       }
     } else {
-      // INDIAN STOCKS: Yahoo for both price and financials
+      // INDIAN STOCKS: Yahoo for price + financials
       dataSource = "yahoo";
       try {
         const [yahooQuote, yahooFin] = await Promise.all([
           fetchYahooQuote(upper),
           fetchYahooFinancials(upper),
         ]);
-
-        financials = {
-          years: yahooFin.years,
-          profile: {
-            companyName: yahooQuote.longName || yahooQuote.shortName || upper,
-            exchange: yahooQuote.exchangeName,
-            sector: "", industry: "", description: "",
-            marketCap: 0, price: yahooQuote.price,
-            peRatio: yahooQuote.price && yahooFin.latestEps ? yahooQuote.price / yahooFin.latestEps : 0,
-            currency: yahooQuote.currency,
-            currencySymbol: yahooQuote.currencySymbol,
-            isIndian: yahooQuote.isIndian,
-            change: yahooQuote.change,
-            changePercent: yahooQuote.changePercent,
-          },
-          latest: yahooFin.years[yahooFin.years.length - 1] || {},
-        };
+        financials = buildYahooFinancials(yahooQuote, yahooFin, upper);
       } catch (e) {
-        return Response.json({ error: `Could not fetch data for "${upper}": ${e.message}` }, { status: 404 });
+        return Response.json(
+          { error: `Could not fetch Indian stock data for "${upper}": ${e.message}` },
+          { status: 404 }
+        );
       }
     }
 
-    // GEMINI: qualitative analysis only (1 request for ALL stocks)
+    // GEMINI: qualitative analysis only (1 call for all stocks)
     try {
       gemini = await fetchGeminiAnalysis(
         upper,
