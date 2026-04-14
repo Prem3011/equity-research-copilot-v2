@@ -1,6 +1,6 @@
 import { fetchFMPData } from "@/lib/fmp";
 import { computeFinancials } from "@/lib/computeFinancials";
-import { fetchGeminiAnalysis, fetchGeminiFinancials } from "@/lib/gemini";
+import { fetchGeminiAnalysis, fetchGeminiCombined } from "@/lib/gemini";
 
 export async function POST(request) {
   try {
@@ -14,59 +14,49 @@ export async function POST(request) {
     const geminiKey = process.env.GEMINI_API_KEY;
 
     if (!fmpKey || !geminiKey) {
-      return Response.json(
-        { error: "API keys not configured. FMP: " + !!fmpKey + ", Gemini: " + !!geminiKey },
-        { status: 500 }
-      );
+      return Response.json({ error: "API keys not configured" }, { status: 500 });
     }
 
     let financials;
+    let gemini;
     let dataSource = "fmp";
 
     // Step 1: Try FMP first
     try {
       const fmpData = await fetchFMPData(ticker, fmpKey);
       financials = computeFinancials(fmpData);
-    } catch (e) {
-      console.error("FMP failed:", e.message);
 
-      // Step 1b: FMP failed (likely Indian stock 402) — use Gemini for financials
+      // Step 2: FMP worked — fetch Gemini for qualitative analysis only (1 request)
       try {
-        const geminiFinData = await fetchGeminiFinancials(ticker, geminiKey);
-        financials = geminiFinData;
-        dataSource = "gemini";
+        gemini = await fetchGeminiAnalysis(
+          ticker.toUpperCase().trim(),
+          financials.profile.companyName,
+          financials.profile.isIndian,
+          geminiKey
+        );
+      } catch (ge) {
+        gemini = {
+          overview: "Gemini error: " + ge.message,
+          risks: [], bullCase: "", bearCase: "", thesis: "", outlook: "Neutral",
+          news: [], segmentRevenue: [], geographyRevenue: [], debtMaturity: [],
+          liquidity: { sources: {}, uses: {} }, peers: [],
+        };
+      }
+    } catch (fmpError) {
+      // Step 1b: FMP failed — use single combined Gemini call (1 request for everything)
+      console.error("FMP failed, using Gemini combined:", fmpError.message);
+      dataSource = "gemini";
+
+      try {
+        const combined = await fetchGeminiCombined(ticker.toUpperCase().trim(), geminiKey);
+        financials = combined.financials;
+        gemini = combined.gemini;
       } catch (ge) {
         return Response.json(
-          { error: `Could not fetch data for "${ticker}": FMP error: ${e.message}. Gemini fallback error: ${ge.message}` },
+          { error: `Could not fetch data for "${ticker}": ${ge.message}` },
           { status: 404 }
         );
       }
-    }
-
-    // Step 2: Fetch Gemini qualitative analysis
-    let gemini;
-    try {
-      gemini = await fetchGeminiAnalysis(
-        ticker.toUpperCase().trim(),
-        financials.profile?.companyName || ticker,
-        financials.profile?.isIndian || false,
-        geminiKey
-      );
-    } catch (e) {
-      gemini = {
-        overview: "Gemini error: " + e.message,
-        risks: [],
-        bullCase: "",
-        bearCase: "",
-        thesis: "",
-        outlook: "Neutral",
-        news: [],
-        segmentRevenue: [],
-        geographyRevenue: [],
-        debtMaturity: [],
-        liquidity: { sources: {}, uses: {} },
-        peers: [],
-      };
     }
 
     return Response.json({
@@ -76,9 +66,6 @@ export async function POST(request) {
       dataSource,
     });
   } catch (e) {
-    return Response.json(
-      { error: "Server error: " + e.message },
-      { status: 500 }
-    );
+    return Response.json({ error: "Server error: " + e.message }, { status: 500 });
   }
 }
