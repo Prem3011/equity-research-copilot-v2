@@ -95,7 +95,7 @@ export default function Home() {
              <FinancialTable years={fin?.years} profile={prof} dataSource={data?.dataSource} />
               <div className="space-y-5">
                 <NewsSection news={gem?.news} />
-                <div
+               <div
                   className="rounded-xl p-5"
                   style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border)" }}
                 >
@@ -109,6 +109,7 @@ export default function Home() {
                     {gem?.overview}
                   </p>
                 </div>
+                <CreditStrengths strengths={gem?.creditStrengths} />
               </div>
             </div>
 
