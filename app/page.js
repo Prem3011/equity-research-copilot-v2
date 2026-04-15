@@ -57,7 +57,9 @@ export default function Home() {
     setDarkMode((d) => !d);
     document.documentElement.classList.toggle("dark");
   };
-
+useEffect(() => {
+    document.documentElement.classList.add("dark");
+  }, []);
   const fin = data?.financials;
   const gem = data?.gemini;
   const prof = fin?.profile;
