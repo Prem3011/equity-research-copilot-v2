@@ -93,7 +93,7 @@ useEffect(() => {
             <MetricCards financials={fin} />
 
             {/* Financial Table + News + Overview + Strengths */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-7">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-7 items-start">
               <FinancialTable years={fin?.years} profile={prof} dataSource={data?.dataSource} />
               <div className="space-y-6">
                 <NewsSection news={gem?.news} />
