@@ -1,7 +1,7 @@
 "use client";
 
-import CreditStrengths from "@/components/CreditStrengths";
 import { useState, useCallback } from "react";
+import CreditStrengths from "@/components/CreditStrengths";
 import Header from "@/components/Header";
 import TickerHero from "@/components/TickerHero";
 import QuickPicks from "@/components/QuickPicks";
@@ -66,14 +66,14 @@ export default function Home() {
     <div className="min-h-screen" style={{ background: "var(--bg-tertiary)" }}>
       <Header onAnalyze={analyze} darkMode={darkMode} onToggleDark={toggleDark} />
 
-      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-16">
+      <main className="max-w-[1360px] mx-auto px-4 sm:px-8 pb-20">
         <QuickPicks onSelect={analyze} activeTicker={data?.ticker} />
 
         {loading && <LoadingState />}
 
         {error && (
           <div
-            className="mt-6 p-4 rounded-xl text-sm"
+            className="mt-8 p-4 rounded-xl text-sm"
             style={{ background: "var(--negative-light)", color: "var(--negative)" }}
           >
             {error}
@@ -83,20 +83,20 @@ export default function Home() {
         {!loading && !data && !error && <EmptyState />}
 
         {data && !loading && (
-          <div className="space-y-5 mt-6">
+          <div className="space-y-7 mt-8">
             {/* Hero + Price */}
             <TickerHero profile={prof} ticker={data.ticker} />
 
             {/* KPI Cards */}
             <MetricCards financials={fin} />
 
-            {/* Financial Table + News (2 columns on desktop) */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
-             <FinancialTable years={fin?.years} profile={prof} dataSource={data?.dataSource} />
-              <div className="space-y-5">
+            {/* Financial Table + News + Overview + Strengths */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-7">
+              <FinancialTable years={fin?.years} profile={prof} dataSource={data?.dataSource} />
+              <div className="space-y-6">
                 <NewsSection news={gem?.news} />
-               <div
-                  className="rounded-xl p-5"
+                <div
+                  className="rounded-xl p-6"
                   style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border)" }}
                 >
                   <h3
@@ -114,21 +114,21 @@ export default function Home() {
             </div>
 
             {/* Charts — 2x2 grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
               <FCFChart years={fin?.years} currencySymbol={prof?.currencySymbol} />
               <SegmentPieChart segments={gem?.segmentRevenue} />
               <DebtMaturityChart debtData={gem?.debtMaturity} currencySymbol={prof?.currencySymbol} />
               <GeographyPieChart geography={gem?.geographyRevenue} />
             </div>
 
-            {/* Risks + Bull/Bear (2 columns) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Risks + Bull/Bear */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-7">
               <RiskFactors risks={gem?.risks} />
               <BullBear bullCase={gem?.bullCase} bearCase={gem?.bearCase} />
             </div>
 
-            {/* Liquidity + Thesis (2 columns) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Liquidity + Thesis */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-7">
               <LiquidityAnalysis liquidity={gem?.liquidity} currencySymbol={prof?.currencySymbol} />
               <InvestmentThesis thesis={gem?.thesis} outlook={gem?.outlook} />
             </div>
@@ -137,11 +137,11 @@ export default function Home() {
             <PeerComparison peers={gem?.peers} />
 
             {/* Footer */}
-          <div className="text-center pt-4 pb-2">
+            <div className="text-center pt-6 pb-4">
               <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                 Built by Prem Acharya · Powered by Gemini AI + FMP API · Next.js
               </p>
-              <p className="text-[10px] mt-1" style={{ color: "var(--text-tertiary)" }}>
+              <p className="text-[10px] mt-1.5" style={{ color: "var(--text-tertiary)" }}>
                 Financial data from company filings via FMP. AI analysis via Google Gemini. Not financial advice.
               </p>
             </div>
