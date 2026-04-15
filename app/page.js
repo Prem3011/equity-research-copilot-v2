@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import CreditStrengths from "@/components/CreditStrengths";
 import Header from "@/components/Header";
 import TickerHero from "@/components/TickerHero";
