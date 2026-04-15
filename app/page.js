@@ -24,7 +24,7 @@ export default function Home() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   const analyze = useCallback(async (ticker) => {
     if (!ticker?.trim()) return;
