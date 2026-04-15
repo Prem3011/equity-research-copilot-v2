@@ -92,11 +92,10 @@ useEffect(() => {
             {/* KPI Cards */}
             <MetricCards financials={fin} />
 
-            {/* Financial Table + News + Overview + Strengths */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-7 items-start">
-              <FinancialTable years={fin?.years} profile={prof} dataSource={data?.dataSource} />
-              <div className="space-y-6">
-                <NewsSection news={gem?.news} />
+          {/* Financial Table + News + Overview + Strengths */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-7">
+              <div className="space-y-7">
+                <FinancialTable years={fin?.years} profile={prof} dataSource={data?.dataSource} />
                 <div
                   className="rounded-xl p-6"
                   style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border)" }}
@@ -111,8 +110,12 @@ useEffect(() => {
                     {gem?.overview}
                   </p>
                 </div>
+              </div>
+              <div className="space-y-7">
+                <NewsSection news={gem?.news} />
                 <CreditStrengths strengths={gem?.creditStrengths} />
               </div>
+            </div>
             </div>
 
             {/* Charts — 2x2 grid */}
