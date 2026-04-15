@@ -57,9 +57,11 @@ export default function Home() {
     setDarkMode((d) => !d);
     document.documentElement.classList.toggle("dark");
   };
-useEffect(() => {
+
+  useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
+
   const fin = data?.financials;
   const gem = data?.gemini;
   const prof = fin?.profile;
@@ -92,7 +94,7 @@ useEffect(() => {
             {/* KPI Cards */}
             <MetricCards financials={fin} />
 
-          {/* Financial Table + News + Overview + Strengths */}
+            {/* Financial Table + Overview (left) | News + Credit Strengths (right) */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-7">
               <div className="space-y-7">
                 <FinancialTable years={fin?.years} profile={prof} dataSource={data?.dataSource} />
@@ -115,7 +117,6 @@ useEffect(() => {
                 <NewsSection news={gem?.news} />
                 <CreditStrengths strengths={gem?.creditStrengths} />
               </div>
-            </div>
             </div>
 
             {/* Charts — 2x2 grid */}
