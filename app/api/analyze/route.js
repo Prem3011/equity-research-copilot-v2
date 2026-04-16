@@ -78,9 +78,24 @@ export async function POST(request) {
         }
       }
 
-      // Fix liquidity period to match real FMP data year
-      if (dataSource === "fmp" && financials?.years?.length && gemini?.liquidity) {
-        gemini.liquidity.period = `FY${financials.years[financials.years.length - 1]?.year}`;
+     // Build real liquidity from FMP data for US stocks
+      if (dataSource === "fmp" && financials?.years?.length) {
+        const ly = financials.years[financials.years.length - 1];
+        const toB = (v) => Math.round(((Math.abs(v) || 0) / 1e9) * 10) / 10;
+
+        gemini.liquidity = {
+          period: `FY${ly.year}`,
+          sources: [
+            { item: "Cash and equivalents", value: toB(ly.cash) },
+            { item: "Operating cash flow (CFO)", value: toB(ly.cfo) },
+          ],
+          uses: [
+            { item: "Capital expenditure", value: toB(ly.capex) },
+            { item: "Dividends", value: toB(ly.dividendsPaid) },
+            { item: "Share repurchases", value: toB(ly.shareRepurchases) },
+            { item: "Short-term debt", value: toB(ly.shortTermDebt) },
+          ],
+        };
       }
       return Response.json({ ticker: upper, financials, gemini, dataSource });
     }
