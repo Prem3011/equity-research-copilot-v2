@@ -78,6 +78,10 @@ export async function POST(request) {
         }
       }
 
+      // Fix liquidity period to match real FMP data year
+      if (dataSource === "fmp" && financials?.years?.length && gemini?.liquidity) {
+        gemini.liquidity.period = `FY${financials.years[financials.years.length - 1]?.year}`;
+      }
       return Response.json({ ticker: upper, financials, gemini, dataSource });
     }
 
